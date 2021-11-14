@@ -23,14 +23,15 @@ jobs:
           git config --global user.name "${{ secrets.SYNC_USER_NAME }}"
 
           echo "[LOG] Add destination repo as remote upstream repo"
-          git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_DEST_REPO }}.git
+          # git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_DEST_REPO }}.git
+          git remote set-url origin https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_DEST_REPO }}.git
 
           echo "[LOG] Force push all branches to upstream repo"
-          git push --all upstream -f
+          git push --mirror origin -f
 
-          echo "[LOG] Force push the branch that triggered the workflow to upstream repo"
-          git switch $GITHUB_REF_NAME
-          git push upstream $GITHUB_REF_NAME  -f
+          # echo "[LOG] Force push the branch that triggered the workflow to upstream repo"
+          # git switch $GITHUB_REF_NAME
+          # git push upstream $GITHUB_REF_NAME  -f
 
           echo "[LOG] Remove folder / Clean up"
           cd ..
