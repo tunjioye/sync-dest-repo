@@ -2,7 +2,13 @@ name: sync repo with source repo
 
 on:
   schedule:
-    - cron:  '*/10 * * * *' # every 10 minutes
+    - cron:  '*/5 * * * *' # every 5 minutes
+  workflow_dispatch:
+    inputs:
+      SKIP_PATTERN:
+        description: Sync Repo With Source
+        default: pull-source-repo
+        required: true
 
 jobs:
   sync:
@@ -12,6 +18,7 @@ jobs:
       env:
         SYNC_ACCESS_TOKEN: ${{ secrets.SYNC_ACCESS_TOKEN }}
         SYNC_SOURCE_REPO: ${{ secrets.SYNC_SOURCE_REPO }}
+        SKIP_PATTERN: ${{ secrets.SKIP_PATTERN }}
       if: env.SYNC_ACCESS_TOKEN != null && env.SYNC_SOURCE_REPO != null
       run : |
         echo "[LOG] Clone this repo"
@@ -22,10 +29,10 @@ jobs:
         git remote add upstream https://x-access-token:${{ secrets.SYNC_ACCESS_TOKEN }}@github.com/${{ secrets.SYNC_SOURCE_REPO }}.git
 
         echo "[LOG] Detach HEAD And delete all branches not matching SKIP_PATTERN"
-        git checkout --detach -q && git branch -D $(git branch | grep -v ${{ secrets.SKIP_PATTERN }})
+        git checkout --detach -q && git branch -D $(git branch | grep -v ${{ env.SKIP_PATTERN || github.event.inputs.SKIP_PATTERN }})
 
         echo "[LOG] Checkout all branches not matching SKIP_PATTERN"
-        for branch in $(git branch --all | grep '^\s*remotes/upstream' | grep -v ${{ secrets.SKIP_PATTERN }}); do
+        for branch in $(git branch --all | grep '^\s*remotes/upstream' | grep -v ${{ env.SKIP_PATTERN || github.event.inputs.SKIP_PATTERN }}); do
           git branch --track "${branch##*/}" "$branch"
         done
 
